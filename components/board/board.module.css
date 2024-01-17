@@ -1,0 +1,25 @@
+.container {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+}
+
+.container .box_1 {
+    flex-grow: 1;
+    background-color: seagreen;
+}
+
+.container .box_2 {
+    flex-grow: 3;
+}
+
+.container .box_1, .box_2 {
+    height: 100%;
+} 
+
+.canvas {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
