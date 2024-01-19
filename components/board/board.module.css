@@ -1,3 +1,10 @@
+
+.box_1 h4, .pencilsHeadingContainer h4 {
+    font-family: cursive;
+    font-weight: bold;
+    color: gray;
+}
+
 .container {
     width: 100vw;
     height: 100vh;
@@ -6,8 +13,9 @@
 }
 
 .container .box_1 {
-    flex-grow: 1;
-    background-color: seagreen;
+    flex-grow: 0.5;
+    background-color: #C4DFDF;
+    padding: 10px;
 }
 
 .container .box_2 {
@@ -23,3 +31,35 @@
     height: 100%;
     width: 100%;
 }
+
+.colorboard {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(5, 30px);
+    gap: 11px;
+}
+
+.colorboard .colorbox {
+    width: 100%;
+    height: 100%;
+    background-color: blue;
+    cursor: pointer;
+}
+
+.pencilboard {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.pencilboard button{
+    border: none;
+    cursor: pointer;
+}
+
+.pencil_1 {
+    width: 40px;
+}
+
