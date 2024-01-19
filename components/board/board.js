@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import styles from "./board.module.css";
-import colorTemplate from "../../colors";
-import Image from "next/image";
-import pencil from "../../public/pencil.svg";
 import pencils from "../../pencils";
+import ColorPalette from "../colorPalette/colorPalette";
+import PencilBoard from "../pencilBoard/pencilBoard";
+import EraserBoard from "../eraserBoard/eraserBoard";
 
 export default function Board() {
     const canvasRef = useRef();
@@ -15,6 +15,7 @@ export default function Board() {
     const [currentPencilWidth, setCurrentPencilWidth] = useState(2);
     const currentColorRef = useRef();
     const pencilWidth = useRef(2);
+    const eraserSelectedPencilColor = useRef("");
 
 
     useEffect(() => {
@@ -105,6 +106,9 @@ export default function Board() {
     }
 
     function handlePencilSize(e) {
+        if(currentColor === "white") // to remove the eraser if selected:
+            setCurrentColor(eraserSelectedPencilColor.current);
+
         const pencil = e?.target?.id;
         if(!pencil) return;
 
@@ -120,58 +124,18 @@ export default function Board() {
         setCurrentPencilWidth(pencils[pencil]);
     }
 
+    function handleEraser() {
+        eraserSelectedPencilColor.current = currentColorRef.current;
+        setCurrentColor("white");
+        setCurrentPencilWidth(0);
+    }
+
     return (
         <div className={styles.container}>
             <div className={styles.box_1}>
-                <h4>Color palette</h4>
-                <div className={styles.colorboard}>
-                    <div id="yellow" onClick={(e) => handleColorChange(e)} 
-                    className={styles.colorbox} style={{backgroundColor: colorTemplate.yellow, border: currentColor === "yellow" ? "3px solid white" : "none"}}></div>
-                    <div id="red" onClick={(e) => handleColorChange(e)} className={styles.colorbox} 
-                    style={{backgroundColor: colorTemplate.red, border: currentColor === "red" ? "3px solid white" : "none"}}></div>
-                    <div id="blue" onClick={(e) => handleColorChange(e)} className={styles.colorbox} 
-                    style={{backgroundColor: colorTemplate.blue, border: currentColor === "blue" ? "3px solid white" : "none"}} ></div>
-                    <div id="green" onClick={(e) => handleColorChange(e)} className={styles.colorbox}
-                     style={{backgroundColor: colorTemplate.green, border: currentColor === "green" ? "3px solid white" : "none"}}></div>
-                    <div id="pink" onClick={(e) => handleColorChange(e)} className={styles.colorbox} 
-                    style={{backgroundColor: colorTemplate.pink, border: currentColor === "pink" ? "3px solid white" : "none"}}></div>
-                    <div id="black" onClick={(e) => handleColorChange(e)} className={styles.colorbox}
-                     style={{backgroundColor: colorTemplate.black, border: currentColor === "black" ? "3px solid white" : "none"}}></div>
-                
-                <div id="purple" onClick={(e) => handleColorChange(e)} className={styles.colorbox}
-                     style={{backgroundColor: colorTemplate.purple, border: currentColor === "purple" ? "3px solid white" : "none"}}></div>
-                     <div id="grey" onClick={(e) => handleColorChange(e)} className={styles.colorbox}
-                     style={{backgroundColor: colorTemplate.grey, border: currentColor === "grey" ? "3px solid white" : "none"}}></div>
-                     <div id="orange" onClick={(e) => handleColorChange(e)} className={styles.colorbox}
-                     style={{backgroundColor: colorTemplate.orange, border: currentColor === "orange" ? "3px solid white" : "none"}}></div>
-
-                <div id="brown" onClick={(e) => handleColorChange(e)} className={styles.colorbox}
-                     style={{backgroundColor: colorTemplate.brown, border: currentColor === "brown" ? "3px solid white" : "none"}}></div>
-                    <div id="cadetblue" onClick={(e) => handleColorChange(e)} className={styles.colorbox}
-                     style={{backgroundColor: colorTemplate.cadetblue, border: currentColor === "cadetblue" ? "3px solid white" : "none"}}></div>
-                    <div id="chocolate" onClick={(e) => handleColorChange(e)} className={styles.colorbox}
-                     style={{backgroundColor: colorTemplate.chocolate, border: currentColor === "chocolate" ? "3px solid white" : "none"}}></div>
-                    <div id="deepskyblue" onClick={(e) => handleColorChange(e)} className={styles.colorbox}
-                     style={{backgroundColor: colorTemplate.deepskyblue, border: currentColor === "deepskyblue" ? "3px solid white" : "none"}}></div>
-                </div>
-
-                <div className={styles.pencilsHeadingContainer}>
-                    <h4>Pencils</h4>
-                </div>
-                <div className={styles.pencilboard}>
-                    <button  id="pencil_1" style={{border: pencilWidth.current === pencils.pencil_1 ? "3px solid #000" : "none"}}>
-                         <Image id="pencil_1" onClick={(e) => handlePencilSize(e)} priority width={20} src={pencil} alt="error-loading"/>
-                    </button>
-                    <button onClick={(e) => handlePencilSize(e)} id="pencil_2" style={{border: pencilWidth.current === pencils.pencil_2 ? "3px solid #000" : "none"}}>
-                        <Image id="pencil_2" priority width={30} src={pencil} alt="error-loading"/>
-                    </button>
-                    <button onClick={(e) => handlePencilSize(e)} id="pencil_3" style={{border: pencilWidth.current === pencils.pencil_3 ? "3px solid #000" : "none"}}>
-                         <Image id="pencil_3" priority width={40} src={pencil} alt="error-loading"/>
-                    </button>
-                    <button onClick={(e) => handlePencilSize(e)} id="pencil_4" style={{border: pencilWidth.current === pencils.pencil_4 ? "3px solid #000" : "none"}}>
-                         <Image id="pencil_4" priority width={50} src={pencil} alt="error-loading"/>
-                    </button>
-                </div>
+                <ColorPalette currentColor={currentColor} handleColorChange={handleColorChange} />
+                <PencilBoard handlePencilSize={handlePencilSize} currentPencilWidth={currentPencilWidth} />
+                <EraserBoard currentColor={currentColor} handleEraser={handleEraser}/>
             </div>
 
             <div className={styles.box_2}>

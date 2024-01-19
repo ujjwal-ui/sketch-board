@@ -16,6 +16,9 @@
     flex-grow: 0.5;
     background-color: #C4DFDF;
     padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .container .box_2 {
@@ -47,19 +50,5 @@
     cursor: pointer;
 }
 
-.pencilboard {
-    width: 100%;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-}
 
-.pencilboard button{
-    border: none;
-    cursor: pointer;
-}
-
-.pencil_1 {
-    width: 40px;
-}
 

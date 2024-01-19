@@ -1,0 +1,14 @@
+
+.eraserboard {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    justify-content: flex-start;
+}
+
+.eraserboard button {
+    margin-left: 15px;
+    border: none;
+    cursor: pointer;
+}
