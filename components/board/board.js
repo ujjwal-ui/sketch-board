@@ -133,8 +133,8 @@ export default function Board() {
 
     function undoChangesHandler() {    
         const context = canvasRef.current.getContext("2d", { willReadFrequently: true });
-        // if(drawingdataPointer.current === 0)
-        //     context.clearRect(0, 0, canvas.width, canvas.height);
+        if(drawingdataPointer.current === 0)
+            return context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
         if(drawingdataPointer.current > 0) 
             drawingdataPointer.current -= 1;
@@ -145,12 +145,14 @@ export default function Board() {
     }   
 
     function redoChangesHandler() {
-        if(drawingdataPointer.current === drawingData.current.length - 1) return;
         
+        if(drawingData.current.length === 0) return;
+        if(drawingdataPointer.current === drawingData.current.length) return drawingdataPointer.current -= 1;
+
         const context = canvasRef.current.getContext("2d", { willReadFrequently: true });
-        drawingdataPointer.current += 1;
         const latestData = drawingData.current[drawingdataPointer.current];
         context.putImageData(latestData, 0, 0);
+        drawingdataPointer.current += 1;
     }
 
     return (
