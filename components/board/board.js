@@ -11,6 +11,7 @@ export default function Board() {
     const canvasRef = useRef();
     const drawRef = useRef(false);
     const drawingData = useRef([]);
+    const drawingdataPointer = useRef(0);
     const [currentColor, setCurrentColor] = useState("black");
     const [currentPencilWidth, setCurrentPencilWidth] = useState(2);
     const currentColorRef = useRef();
@@ -19,7 +20,6 @@ export default function Board() {
 
 
     useEffect(() => {
-        console.log("use effect _1", currentColor);
         const context = canvasRef.current.getContext("2d", { willReadFrequently: true });
         context.strokeStyle = currentColor;
         currentColorRef.current = currentColor;
@@ -62,6 +62,7 @@ export default function Board() {
             drawRef.current = false;
             const drawing = context.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
             drawingData.current.push(drawing);
+            drawingdataPointer.current = drawingData.current.length - 1;
         }
 
         function computerViewPoints(e) {
@@ -130,12 +131,34 @@ export default function Board() {
         setCurrentPencilWidth(0);
     }
 
+    function undoChangesHandler() {    
+        const context = canvasRef.current.getContext("2d", { willReadFrequently: true });
+        // if(drawingdataPointer.current === 0)
+        //     context.clearRect(0, 0, canvas.width, canvas.height);
+
+        if(drawingdataPointer.current > 0) 
+            drawingdataPointer.current -= 1;
+
+        const previousData = drawingData.current[drawingdataPointer.current];
+        console.log(previousData, drawingdataPointer.current);
+        context.putImageData(previousData, 0, 0);
+    }   
+
+    function redoChangesHandler() {
+        if(drawingdataPointer.current === drawingData.current.length - 1) return;
+        
+        const context = canvasRef.current.getContext("2d", { willReadFrequently: true });
+        drawingdataPointer.current += 1;
+        const latestData = drawingData.current[drawingdataPointer.current];
+        context.putImageData(latestData, 0, 0);
+    }
+
     return (
         <div className={styles.container}>
             <div className={styles.box_1}>
                 <ColorPalette currentColor={currentColor} handleColorChange={handleColorChange} />
                 <PencilBoard handlePencilSize={handlePencilSize} currentPencilWidth={currentPencilWidth} />
-                <EraserBoard currentColor={currentColor} handleEraser={handleEraser}/>
+                <EraserBoard redoChangesHandler={redoChangesHandler} undoChangesHandler={undoChangesHandler} currentColor={currentColor} handleEraser={handleEraser}/>
             </div>
 
             <div className={styles.box_2}>
