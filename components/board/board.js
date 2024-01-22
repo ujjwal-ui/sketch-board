@@ -109,6 +109,12 @@ export default function Board() {
         function handleChangeColorSocket(color) {
             setCurrentColor(color);   
         }
+
+        function handleEraserSocket() {
+            eraserSelectedPencilColor.current = currentColorRef.current;
+            setCurrentColor("white");
+            setCurrentPencilWidth(10);
+        }
         
         canvasRef.current.addEventListener("mousedown", handleMouseDown);
         canvasRef.current.addEventListener("mousemove", handleMouseMove);
@@ -119,6 +125,7 @@ export default function Board() {
         socket.on("mousemove", handleMouseMoveSocket);
         socket.on("pencil-changed", handlePencilChangedSocket);
         socket.on("change-color", handleChangeColorSocket);
+        socket.on("use-eraser", handleEraserSocket);
         
         return () => {
             canvasRef.current.removeEventListener("mousedown", handleMouseDown);
@@ -128,6 +135,8 @@ export default function Board() {
             socket.off("mousedown", handleMouseDownSocket);
             socket.off("mousemove", handleMouseMoveSocket);
             socket.off("pencil-changed", handlePencilChangedSocket);
+            socket.off("change-color", handleChangeColorSocket);
+            socket.off("use-eraser", handleEraserSocket);
         }
 
     }, []);
@@ -164,8 +173,10 @@ export default function Board() {
 
     function handleEraser() {
         eraserSelectedPencilColor.current = currentColorRef.current;
+        socket.emit("use-eraser");
+
         setCurrentColor("white");
-        setCurrentPencilWidth(0);
+        setCurrentPencilWidth(10);
     }
 
     function undoChangesHandler() {    
