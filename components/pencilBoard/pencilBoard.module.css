@@ -9,3 +9,7 @@
     border: none;
     cursor: pointer;
 }
+.pencilboard button:hover {
+    background-color: cadetblue;
+    color: black;
+}

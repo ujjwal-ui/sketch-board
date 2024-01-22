@@ -13,3 +13,8 @@
     cursor: pointer;
     border-radius: 50%;
 }
+
+.eraserboard button:hover {
+    background-color: cadetblue;
+    color: black;
+}

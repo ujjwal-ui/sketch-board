@@ -6,6 +6,7 @@ import pencils from "../../pencils";
 import ColorPalette from "../colorPalette/colorPalette";
 import PencilBoard from "../pencilBoard/pencilBoard";
 import EraserBoard from "../eraserBoard/eraserBoard";
+import { socket } from "@/socket";
 
 export default function Board() {
     const canvasRef = useRef();
@@ -24,6 +25,7 @@ export default function Board() {
         context.strokeStyle = currentColor;
         currentColorRef.current = currentColor;
         pencilWidth.current = currentPencilWidth;
+        context.lineWidth = currentPencilWidth;
         
     }, [currentColor, currentPencilWidth]);
 
@@ -40,20 +42,20 @@ export default function Board() {
             drawRef.current = true;
             const points = computerViewPoints(e);
 
-            context.lineWidth = pencilWidth.current;
             context.strokeStyle = currentColorRef.current;
             context.beginPath();
             context.moveTo(points.x, points.y);
+            socket.emit("mousedown", {x: points.x, y: points.y});
         }
 
         function handleMouseMove(e) {
             if(!drawRef.current) return;
             const points = computerViewPoints(e);
             
-            context.lineWidth = pencilWidth.current;
             context.strokeStyle = currentColorRef.current;
             context.lineTo(points.x, points.y);
             context.stroke();
+            socket.emit("mousemove", {x: points.x, y: points.y});
         }
 
         function handleMouseUp(e) {
@@ -86,33 +88,51 @@ export default function Board() {
                 context.putImageData(data, 0, 0);
             });
         }
+
+        function handleMouseDownSocket(coordinates) {
+            context.lineWidth = pencilWidth.current;
+            context.beginPath();
+            context.moveTo(coordinates.x, coordinates.y);
+        }
+
+        function handleMouseMoveSocket(coordinates) {
+            context.lineTo(coordinates.x, coordinates.y);
+            context.stroke();
+        }
+
+
+        function handlePencilChangedSocket(pencil) {
+            changePencilSize(pencil);
+            setCurrentPencilWidth(pencils[pencil]);
+        }
+
+        function handleChangeColorSocket(color) {
+            setCurrentColor(color);   
+        }
         
         canvasRef.current.addEventListener("mousedown", handleMouseDown);
         canvasRef.current.addEventListener("mousemove", handleMouseMove);
         canvasRef.current.addEventListener("mouseup", handleMouseUp);
         window.addEventListener("resize", handleCanvasResize);
 
+        socket.on("mousedown", handleMouseDownSocket);
+        socket.on("mousemove", handleMouseMoveSocket);
+        socket.on("pencil-changed", handlePencilChangedSocket);
+        socket.on("change-color", handleChangeColorSocket);
+        
         return () => {
             canvasRef.current.removeEventListener("mousedown", handleMouseDown);
             canvasRef.current.removeEventListener("mousemove", handleMouseMove);
             canvasRef.current.removeEventListener("mouseup", handleMouseUp);
             window.removeEventListener("resize", handleCanvasResize);
+            socket.off("mousedown", handleMouseDownSocket);
+            socket.off("mousemove", handleMouseMoveSocket);
+            socket.off("pencil-changed", handlePencilChangedSocket);
         }
 
     }, []);
 
-    function handleColorChange(e) {
-        const color = e?.target?.id;
-        setCurrentColor(color);
-    }
-
-    function handlePencilSize(e) {
-        if(currentColor === "white") // to remove the eraser if selected:
-            setCurrentColor(eraserSelectedPencilColor.current);
-
-        const pencil = e?.target?.id;
-        if(!pencil) return;
-
+    function changePencilSize(pencil) {
         if(pencil === "pencil_1") {
             pencilWidth.current = pencils.pencil_1;
         }else if(pencil === "pencil_2") {
@@ -122,7 +142,24 @@ export default function Board() {
         }else {
             pencilWidth.current = pencils.pencil_4;
         }
+    }
+
+    function handleColorChange(e) {
+        const color = e?.target?.id;
+        socket.emit("change-color", color);
+        setCurrentColor(color);
+    }
+
+    function handlePencilSize(e) {
+        if(currentColor === "white") // to remove the eraser if selected:
+            setCurrentColor(eraserSelectedPencilColor.current);
+
+        const pencil = e?.target?.id || e;
+        if(!pencil) return;
+
+        changePencilSize(pencil);
         setCurrentPencilWidth(pencils[pencil]);
+        socket.emit("pencil-changed", pencil);
     }
 
     function handleEraser() {
@@ -140,7 +177,6 @@ export default function Board() {
             drawingdataPointer.current -= 1;
 
         const previousData = drawingData.current[drawingdataPointer.current];
-        console.log(previousData, drawingdataPointer.current);
         context.putImageData(previousData, 0, 0);
     }   
 
