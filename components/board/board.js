@@ -113,7 +113,6 @@ export default function Board() {
         }
 
         function handlePencilChangedSocket(pencil) {
-            console.log(currentColor, eraserSelectedPencilColor.current);
             if(currentColor === "black") // to remove the eraser if selected:
                 setCurrentColor(eraserSelectedPencilColor.current);
 
@@ -126,16 +125,37 @@ export default function Board() {
         }
 
         function handleEraserSocket() {
-            console.log(currentColor);
             eraserSelectedPencilColor.current = currentColorRef.current;
             setCurrentColor("white");
             setCurrentPencilWidth(10);
         }
 
         function handlerCanvasResizeSocket() {
-            console.log(drawingData.current);
             const recentDrawing = drawingData.current[drawingdataPointer.current];
             context.putImageData(recentDrawing, 0, 0);
+        }
+
+        function handleUndoChangesSocket() {
+            console.log(drawingdataPointer.current);
+            const context = canvasRef.current.getContext("2d", { willReadFrequently: true });
+            if(drawingdataPointer.current === 0)
+                return context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    
+            if(drawingdataPointer.current > 0) 
+                drawingdataPointer.current -= 1;
+    
+            const previousData = drawingData.current[drawingdataPointer.current];
+            context.putImageData(previousData, 0, 0);
+        }
+
+        function handleRedoChangesSocket() {
+            if(drawingData.current.length === 0) return;
+            if(drawingdataPointer.current === drawingData.current.length) return drawingdataPointer.current -= 1;
+    
+            const context = canvasRef.current.getContext("2d", { willReadFrequently: true });
+            const latestData = drawingData.current[drawingdataPointer.current];
+            context.putImageData(latestData, 0, 0);
+            drawingdataPointer.current += 1;
         }
         
         canvasRef.current.addEventListener("mousedown", handleMouseDown);
@@ -150,6 +170,8 @@ export default function Board() {
         socket.on("use-eraser", handleEraserSocket);
         socket.on("mouseup-event", handleMouseUpSocket);
         socket.on("canvas-resize", handlerCanvasResizeSocket);
+        socket.on("undo-changes", handleUndoChangesSocket);
+        socket.on("redo-changes", handleRedoChangesSocket);
         
         return () => {
             canvasRef.current.removeEventListener("mousedown", handleMouseDown);
@@ -163,6 +185,8 @@ export default function Board() {
             socket.off("use-eraser", handleEraserSocket);
             socket.off("mouseup-event", handleMouseUpSocket);
             socket.off("canvas-resize", handlerCanvasResizeSocket);
+            socket.off("undo-changes", handleUndoChangesSocket);
+            socket.off("redo-changes", handleRedoChangesSocket);
         }
 
     }, []);
@@ -207,14 +231,16 @@ export default function Board() {
 
     function undoChangesHandler() {    
         const context = canvasRef.current.getContext("2d", { willReadFrequently: true });
-        if(drawingdataPointer.current === 0)
+        if(drawingdataPointer.current === 0) {
+            socket.emit("undo-changes");
             return context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-
+        }
         if(drawingdataPointer.current > 0) 
             drawingdataPointer.current -= 1;
 
         const previousData = drawingData.current[drawingdataPointer.current];
         context.putImageData(previousData, 0, 0);
+        socket.emit("undo-changes");
     }   
 
     function redoChangesHandler() {
@@ -226,6 +252,7 @@ export default function Board() {
         const latestData = drawingData.current[drawingdataPointer.current];
         context.putImageData(latestData, 0, 0);
         drawingdataPointer.current += 1;
+        socket.emit("redo-changes");
     }
 
     return (
